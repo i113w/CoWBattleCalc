@@ -1,0 +1,45 @@
+{
+  "Bunker": {
+    "levels": [
+      {
+        "level": 1,
+        "hp": 40.0,
+        "mitigation": 0.15
+      },
+      {
+        "level": 2,
+        "hp": 80.0,
+        "mitigation": 0.15
+      },
+      {
+        "level": 3,
+        "hp": 120.0,
+        "mitigation": 0.15
+      },
+      {
+        "level": 4,
+        "hp": 160.0,
+        "mitigation": 0.15
+      },
+      {
+        "level": 5,
+        "hp": 200.0,
+        "mitigation": 0.15
+      }
+    ]
+  },
+  "Infrastructure": {
+    "levels": [
+      {
+        "level": 1,
+        "hp": 20.0,
+        "mitigation": 0.0
+      },
+      {
+        "level": 2,
+        "hp": 20.0,
+        "mitigation": 0.0
+      }
+    ]
+  }
+}

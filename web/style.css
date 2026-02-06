@@ -1,0 +1,910 @@
+:root {
+    /* 护眼米黄色主题 */
+    --bg-color: #fdf6e3;       /* 整体背景：米黄 */
+    --panel-bg: #fffef8;       /* 面板背景：极淡的米白 */
+    --text: #4b3e32;           /* 文字：深褐灰 */
+    --primary: #d3a158;        /* 主色调：暖金/土黄 */
+    --primary-hover: #c08e45;  /* 悬停色 */
+    --secondary: #93a1a1;      /* 次要文字：灰青 */
+    --border: #e6e0cf;         /* 边框：浅米色 */
+    --log-bg: #2C2416;         /* 日志背景：暖黑 */
+    --log-text: #F5E6D3;       /* 日志文字：米灰 */
+    --input-bg: #faf9f5;       /* 输入框背景 */
+}
+
+body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-color);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.header h1 { margin: 0; font-size: 1.2rem; color: #5e4e3e; }
+.header p { margin: 0; font-size: 0.8rem; color: var(--secondary); }
+
+.lang-switch {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.lang-switch:hover { background: var(--primary); color: white; }
+
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden; 
+}
+
+.editor-panel {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: var(--bg-color);
+}
+
+.output-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--log-bg);
+    color: var(--log-text);
+    min-width: 400px;
+    border-left: 1px solid #3e3b36;
+}
+
+/* 场景选择器样式 */
+.scenario-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel-bg);
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+.scenario-selector select {
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 14px;
+    min-width: 200px;
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+.toolbar { display: flex; gap: 10px; align-items: center; }
+.row {
+    display: flex;
+    gap: 15px;
+    flex: 1; 
+    min-height: 200px; 
+    contain: layout; 
+}
+.half { flex: 1; }
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.input-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #8b7d6b;
+}
+
+textarea {
+    flex: 1;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    resize: none;
+    background: var(--input-bg);
+    color: #333;
+    min-height: 185px;
+    transition: border 0.2s;
+}
+
+textarea:focus { outline: none; border: 1px solid var(--primary); box-shadow: 0 0 5px rgba(211, 161, 88, 0.2); }
+
+.action-bar { margin-top: 10px; }
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-primary { background: var(--primary); color: white; width: 100%; font-size: 1rem; box-shadow: 0 2px 5px rgba(211, 161, 88, 0.3); }
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-secondary { background: #b0b8b8; color: white; }
+.btn-secondary:hover { background: #9da6a6; }
+
+#btn-load { background: #7c9473; color: white; } /* 绿色系 Load 按钮 */
+#btn-load:hover { background: #6a8062; }
+
+.btn-small { padding: 4px 8px; font-size: 0.8rem; background: #444; color: #ccc; }
+.btn-small:hover { background: #555; color: white; }
+
+.log-header {
+    padding: 10px;
+    background: #25221e; /* 比日志背景稍深 */
+    border-bottom: 1px solid #4A3F2F;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#output-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-color); }
+::-webkit-scrollbar-thumb { background: #dcd6c5; border-radius: 5px; border: 2px solid var(--bg-color); }
+::-webkit-scrollbar-thumb:hover { background: #c8c0ad; }
+
+.output-panel ::-webkit-scrollbar-track { background: var(--log-bg); }
+.output-panel ::-webkit-scrollbar-thumb { background: #4a4640; border-color: var(--log-bg); }
+.output-panel ::-webkit-scrollbar-thumb:hover { background: #5e5952; }
+
+
+.header-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.mode-switch-container {
+    background: #eae6d6;
+    border-radius: 4px;
+    padding: 2px;
+    display: flex;
+}
+
+.mode-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    border-radius: 3px;
+    opacity: 0.7;
+}
+
+.mode-btn.active {
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    opacity: 1;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Tabs */
+.gui-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border);
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    color: var(--secondary);
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.gui-tab-content { display: none; }
+.gui-tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Battle Config Layout */
+.gui-global-settings {
+    background: var(--panel-bg);
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.gui-teams-container {
+    display: flex;
+    gap: 20px;
+}
+
+.team-column {
+    flex: 1;
+    background: #fdfaf3; /* Slightly darker than panel */
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    min-width: 0; /* Prevent flex overflow */
+}
+
+.team-column h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 5px;
+    color: #5e4e3e;
+}
+
+/* Stack Cards (积木块) */
+.stack-card {
+    background: white;
+    border: 1px solid #dcd6c5;
+    border-left: 4px solid var(--primary);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.stack-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px;
+}
+
+.stack-title-input {
+    font-weight: bold;
+    border: none;
+    border-bottom: 1px dashed #ccc;
+    width: 120px;
+    background: transparent;
+}
+
+.stack-tags {
+    display: flex;
+    gap: 5px;
+}
+
+.tag-check {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 10px;
+    user-select: none;
+}
+.tag-check input { display: none; }
+.tag-check.checked { background: var(--primary); color: white; }
+
+.btn-del-stack {
+    background: transparent; color: #cc5555; padding: 2px; font-size: 1.1rem;
+}
+
+.stack-building-row {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--secondary);
+}
+
+/* Unit Rows inside Stack */
+.unit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 每一个单位条目现在是一个包裹容器 */
+.unit-wrapper {
+    background: #faf9f6;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden; /* 保证折叠动画不溢出 */
+    transition: box-shadow 0.2s;
+}
+.unit-wrapper:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-color: #dcd6c5;
+}
+
+/* 主行：只放最核心信息 (删除, 名字, 数量, 血量, 展开钮) */
+.unit-main-row {
+    display: grid;
+    /* 布局: [X] [名字] [数量] [HP] [v] */
+    grid-template-columns: 30px 3fr 1.4fr 1.2fr 30px; 
+    gap: 6px;
+    align-items: center;
+    padding: 1px;
+}
+
+/* 详情行：默认隐藏，放 Terrain, Ranged, Ultra */
+/* 详情行：改为垂直 Flex 布局 */
+.unit-details-row {
+    background: #f0ebe0;
+    padding: 10px;
+    border-top: 1px dashed #dcd6c5;
+    
+    display: none; /* 默认隐藏 */
+    gap: 8px; /* 每一行之间的间距 */
+    
+    font-size: 0.85rem;
+}
+
+/* 展开时显示为 Flex */
+.unit-details-row.expanded {
+    display: flex;
+}
+
+/* 控件微调 */
+.unit-main-row input, .unit-main-row select {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 展开按钮样式 */
+.btn-expand {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--secondary);
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-expand:hover { color: var(--text); background: #eee; border-radius: 4px; }
+.btn-expand.open { transform: rotate(180deg); } /* 展开时旋转箭头 */
+
+/* 删除按钮 */
+.del-unit {
+    color: #cc5555;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.del-unit:hover { color: #ff0000; }
+
+/* 详情行里的 Checkbox 组 */
+.detail-check-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 0;
+}
+
+.detail-check-group input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* 地形加成输入框美化 */
+.terrain-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 标签在左，输入框在右 */
+    width: 100%;
+}
+
+.terrain-input-group label {
+    color: var(--secondary);
+    font-weight: 600;
+    flex-shrink: 0; /* 防止标签被挤压 */
+}
+
+.terrain-input-group input {
+    width: 80px; /* 限制输入框宽度，不再是 100% */
+    text-align: right;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+.unit-row select, .unit-row input {
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    padding: 2px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-icon {
+    border: none; background: transparent; cursor: pointer; color: #999;
+}
+.btn-icon:hover { color: #d00; }
+
+.dashed {
+    border: 1px dashed #ccc;
+    background: transparent;
+    color: #888;
+    width: 100%;
+    margin-top: 5px;
+}
+.dashed:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Database Grid */
+.db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.db-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.db-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.db-card h4 { margin: 5px 0; font-size: 0.95rem; }
+.db-card p { margin: 0; font-size: 0.8rem; color: var(--secondary); }
+.armor-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    background: #e0e0e0;
+    margin-top: 5px;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-content {
+    background: white;
+    width: 600px;
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    padding: 15px; border-bottom: 1px solid #eee;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.modal-body {
+    padding: 20px; overflow-y: auto;
+}
+.modal-footer {
+    padding: 15px; border-top: 1px solid #eee;
+    display: flex; justify-content: flex-end; gap: 10px;
+}
+
+.close-modal {
+    background: transparent; border: none; font-size: 1.5rem; cursor: pointer;
+}
+
+/* Form Styles within Modal */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+.form-row { margin-bottom: 10px; }
+.form-row label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; }
+.form-row input, .form-row select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 3px; }
+
+.damage-table {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+.dmg-col h4 { margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+.dmg-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 0.85rem; }
+.dmg-row input { width: 60px; padding: 2px 5px; text-align: right; }
+.stack-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 两个控件之间的间距 */
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #eee;
+    flex-wrap: wrap; /* 窄屏自动换行 */
+}
+
+/* 元数据组 (图标 + 输入框) */
+.meta-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--secondary);
+    flex: 1; /* 均分空间 */
+    min-width: 140px;
+}
+
+.meta-group select, 
+.meta-group input {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 3px;
+    width: 100%; /* 占满 meta-group 剩余空间 */
+    color: #333;
+}
+
+.meta-group input::placeholder {
+    color: #ccc;
+    font-size: 0.8rem;
+}
+
+/* 特别给目标输入框加一点聚焦效果 */
+.stack-target:focus {
+    border-color: #d00; /* 红色边框暗示进攻 */
+    background: #fff5f5;
+}
+
+/* --- 帮助按钮 --- */
+.btn-help-large {
+    background: linear-gradient(135deg, #2c3e50, #4ca1af); /* 区别于其他按钮 */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px; /* 圆角胶囊状 */
+    font-weight: bold;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.btn-help-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #34495e, #55b4c4);
+}
+
+.btn-help-large i { font-size: 1.1rem; }
+
+/* --- 文档模态框布局 --- */
+.doc-modal-content {
+    width: 900px; /* 比普通弹窗更宽 */
+    max-width: 95%;
+    height: 85vh; /* 固定高度，内部滚动 */
+    display: flex;
+    flex-direction: column;
+}
+
+.doc-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden; /* 内部滚动 */
+    border-top: 1px solid #eee;
+}
+
+/* 侧边栏 */
+.doc-sidebar {
+    width: 220px;
+    background: #fdfaf3;
+    border-right: 1px solid #e6e0cf;
+    padding: 10px 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.doc-nav-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    border-left: 4px solid transparent;
+    transition: background 0.2s;
+}
+
+.doc-nav-item:hover { background: #f0ebe0; }
+.doc-nav-item.active {
+    background: white;
+    border-left-color: var(--primary);
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* 内容浏览区 */
+.doc-viewer {
+    flex: 1;
+    padding: 30px 40px;
+    overflow-y: auto;
+    background: white;
+}
+
+/* 移动端隐藏/显示逻辑 */
+.mobile-only { display: none; }
+
+/* --- Markdown 内容美化 (GitHub Style Lite) --- */
+.markdown-body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; line-height: 1.6; color: #24292e; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3 { border-bottom: 1px solid #eaecef; padding-bottom: .3em; margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; }
+.markdown-body h1 { font-size: 2em; }
+.markdown-body h2 { font-size: 1.5em; }
+.markdown-body p { margin-bottom: 16px; }
+.markdown-body code { padding: .2em .4em; margin: 0; font-size: 85%; background-color: #f6f8fa; border-radius: 6px; font-family: Consolas, Monaco, monospace; }
+.markdown-body pre { padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45; background-color: #f6f8fa; border-radius: 6px; }
+.markdown-body pre code { background: transparent; padding: 0; }
+.markdown-body blockquote { padding: 0 1em; color: #6a737d; border-left: .25em solid #dfe2e5; margin: 0 0 16px 0; }
+.markdown-body table { display: block; width: 100%; overflow: auto; margin-bottom: 16px; border-spacing: 0; border-collapse: collapse; }
+.markdown-body table th, .markdown-body table td { padding: 6px 13px; border: 1px solid #dfe2e5; }
+.markdown-body table tr:nth-child(2n) { background-color: #f6f8fa; }
+.markdown-body ul { padding-left: 2em; margin-bottom: 16px; }
+.markdown-body img { max-width: 100%; box-sizing: content-box; background-color: #fff; }
+
+/* --- Mermaid & Formula Tweaks --- */
+.mermaid {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    background: #fdfaf3; /* 给流程图加个淡背景 */
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* 修复 KaTeX 在某些情况下字体过小的问题 */
+.katex {
+    font-size: 1.1em !important; 
+}
+
+@media (max-width: 768px) {
+    /* 全局容器调整 */
+    body {
+        height: auto; /* 取消固定高度，允许滚动 */
+        overflow-y: auto;
+    }
+
+    .main-container {
+        flex-direction: column; /* 左右布局改为上下布局 */
+        overflow: visible; 
+    }
+
+    /* 头部调整 */
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .header-controls {
+        width: 100%;
+        justify-content: space-between; /* 按钮撑满宽度 */
+    }
+
+    .header h1 { font-size: 1.1rem; }
+
+    /* 编辑区 (Editor Panel) */
+    .editor-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--border);
+        padding: 10px;
+        box-sizing: border-box; /* 防止padding撑破宽度 */
+        overflow: visible;
+    }
+
+    /* 输入框组调整 */
+    .row {
+        flex-direction: column; /* 并排的输入框改为垂直 */
+        min-height: auto;
+    }
+    
+    textarea {
+        min-height: 100px; /* 减小手机上文本域高度 */
+    }
+
+    /* GUI 界面适配 */
+    .gui-teams-container {
+        flex-direction: column; /* Team A 和 Team B 垂直排列 */
+        gap: 15px;
+    }
+
+    .team-column {
+        min-width: 100%;
+        padding: 5px;
+    }
+
+    /* Stack 卡片优化 */
+    .stack-card {
+        padding: 8px;
+    }
+
+    .stack-header {
+        flex-wrap: wrap; /* 标题和标签如果太长自动换行 */
+    }
+
+    .stack-meta-row {
+        flex-direction: column; /* 建筑选择和目标选择改为上下排 */
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .meta-group {
+        width: 100%; /* 控件占满一行 */
+    }
+
+    /* 单位行 (Unit Row) - 最难处理的部分 */
+    .unit-main-row {
+        /* 调整网格比例，给名字更多空间，压缩删除按钮 */
+        grid-template-columns: 25px 1fr 0.7fr 0.8fr 25px; 
+        gap: 4px;
+        font-size: 0.85rem;
+    }
+
+    .unit-main-row select, 
+    .unit-main-row input {
+        padding: 4px 2px; /* 减小内边距 */
+    }
+
+    /* 详情行展开后 */
+    .unit-details-row {
+        flex-direction: column; /* 详情选项垂直排列 */
+    }
+    
+    .terrain-input-group {
+        justify-content: space-between;
+    }
+    .terrain-input-group input {
+        width: 60px; /* 缩小输入框 */
+    }
+
+    /* 弹窗 (Modal) */
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        margin: 10px auto;
+    }
+    
+    .form-grid, .damage-table {
+        grid-template-columns: 1fr; /* 单列显示 */
+    }
+
+    /* 日志输出区 (Output Panel) */
+    .output-panel {
+        min-width: 100%;
+        height: 500px; /* 手机上给一个固定高度 */
+        border-left: none;
+    }
+
+    /* 10. 触摸体验优化 */
+    button, select, input {
+        min-height: 35px; /* 保证手指能点到 */
+    }
+    
+    .btn-del-stack {
+        padding: 8px; /* 增大删除按钮点击区域 */
+    }
+
+        .toolbar {
+        /* 允许内部元素换行 */
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* 1. 让场景选择器独占第一行 */
+    .scenario-selector {
+        width: 100%;          /* 占满整行 */
+        flex-direction: column; /* 标签在上，下拉框在下（可选，视喜好而定） */
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .scenario-selector label {
+        font-size: 0.85rem;
+        color: var(--secondary);
+    }
+
+    /* 2. 让下拉框占满宽度，并处理超长文本 */
+    .scenario-selector select {
+        width: 100%;          /* 撑满容器 */
+        max-width: none;      /* 移除可能存在的最大宽度限制 */
+        padding: 8px;         /* 增加触摸区域 */
+        
+        /* 防止超长文本撑破布局，超出部分显示省略号 */
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 3. 让 Load 和 Reset 按钮平分第二行 */
+    .toolbar > button {
+        flex: 1;              /* 两个按钮按 1:1 比例分配剩余空间 */
+        min-width: 120px;     /* 防止按钮变得太窄 */
+        justify-content: center;
+    }
+
+    .doc-sidebar { display: none; } /* 隐藏侧边栏 */
+    .mobile-only { display: block; } /* 显示下拉框 */
+    
+    #doc-mobile-nav {
+        padding: 5px;
+        max-width: 150px;
+    }
+    
+    .doc-viewer {
+        padding: 15px;
+    }
+    
+    /* 调整按钮在移动端的显示 */
+    .btn-help-large {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+
+}

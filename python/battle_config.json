@@ -1,0 +1,44 @@
+{
+  "battle_mode": "LAND_MEET",
+  "max_rounds": 1000,
+  "enable_randomness": false,
+  "detailed_output": true,
+  "team_a": {
+    "name": "A队",
+    "stacks": [
+      {
+        "name": "Stack 1",
+        "core": false,
+        "units": [
+          { "id": "Medium_Tank_Lvl1", "count": 80, "hp_ratio": 1 }
+        ]
+      },
+      {
+        "name": "Stack 2",
+        "core": false,
+        "units": [
+          { "id": "Medium_Tank_Lvl1", "count": 80, "hp_ratio": 1 }
+        ]
+      }
+    ]
+  },
+  "team_b": {
+    "name": "B队",
+    "stacks": [
+      {
+        "name": "Stack 1",
+        "core": true,
+        "units": [
+          { "id": "Infantry_Lvl1", "count": 300, "hp_ratio": 1, "terrain_bonus": 0.5 }
+        ]
+      },
+      {
+        "name": "Stack 2",
+        "core": false,
+        "units": [
+          { "id": "Infantry_Lvl1", "count": 300, "hp_ratio": 1, "terrain_bonus": 0.5 }
+        ]
+      }
+    ]
+  }
+}

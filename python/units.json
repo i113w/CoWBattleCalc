@@ -1,0 +1,85 @@
+{
+  "Infantry_Lvl1": {
+    "name": "步兵 Lv1",
+    "hp": 15.0,
+    "armor_type": "Unarmored",
+    "attack": {
+      "Unarmored": 3.0,
+      "Light Armor": 1.5,
+      "Heavy Armor": 1.0,
+      "Air": 1.0,
+      "Ship": 0.5,
+      "Submarine": 0.5,
+      "Building": 0.2
+    },
+    "defense": {
+      "Unarmored": 4.5,
+      "Light Armor": 2.3,
+      "Heavy Armor": 1.5,
+      "Air": 1.5,
+      "Ship": 0.8,
+      "Submarine": 0.8,
+      "Building": 0.3
+    }
+  },
+  "Medium_Tank_Lvl1": {
+    "name": "中坦 Lv1",
+    "hp": 40.0,
+    "armor_type": "Heavy Armor",
+    "attack": {
+      "Unarmored": 4.5,
+      "Light Armor": 5.0,
+      "Building": 0.6
+    },
+    "defense": {
+      "Unarmored": 3.0,
+      "Light Armor": 4.0
+    }
+  },
+  "Allies_Tactical_Bomber_Lvl1": {
+    "name": "美系步轰 Lv1",
+    "hp": 25.0,
+    "armor_type": "Air",
+    "attack": {
+      "Unarmored": 4.5,
+      "Light Armor": 3.5,
+      "Heavy Armor": 1.5,
+      "Air": 1.0,
+      "Ship": 1.5,
+      "Submarine": 1.0,
+      "Building": 1.5
+    },
+    "defense": {
+      "Unarmored": 2.3,
+      "Light Armor": 1.8,
+      "Heavy Armor": 0.8,
+      "Air": 0.5,
+      "Ship": 0.8,
+      "Submarine": 0.5,
+      "Building": 0.8
+    }
+  },
+  "Allies_Armored_Car_Lvl1": {
+    "name": "美系装甲车 Lv1",
+    "hp": 20.0,
+    "armor_type": "Light Armor",
+    "attack": {
+      "Unarmored": 3.0,
+      "Light Armor": 1.0,
+      "Heavy Armor": 0.7,
+      "Air": 1.0,
+      "Ship": 0.5,
+      "Submarine": 0.5,
+      "Building": 0.2
+    },
+    "defense": {
+      "Unarmored": 4.5,
+      "Light Armor": 1.5,
+      "Heavy Armor": 1.0,
+      "Air": 1.5,
+      "Ship": 0.8,
+      "Submarine": 0.8,
+      "Building": 0.3
+    }
+  }
+}

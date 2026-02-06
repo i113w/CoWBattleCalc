@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CoW Battle Simulator</title>
+    <meta name="theme-color" content="#d3a158"> <!-- 浏览器顶栏颜色 -->
+    <link rel="manifest" href="./manifest.json"> <!-- 引入清单 -->
+    <link rel="apple-touch-icon" href="./icons/icon-192.png"> <!-- iOS 图标 -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1 data-i18n="title">CoW Battle Simulator</h1>
+            <p data-i18n="subtitle">Web Port based on Python Core</p>
+        </div>
+        <div class="header-controls">
+            <button id="btn-open-doc" class="btn-help-large">
+                <i class="fas fa-book-open"></i> <span data-i18n="btn_docs">Help & Docs</span>
+            </button>
+            <!-- 模式切换开关 -->
+            <div class="mode-switch-container">
+                <button id="btn-mode-json" class="mode-btn active"><i class="fas fa-code"></i> JSON</button>
+                <button id="btn-mode-gui" class="mode-btn"><i class="fas fa-th-large"></i> GUI</button>
+            </div>
+            <button id="btn-lang" class="lang-switch">中文</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- 左侧编辑区 -->
+        <div class="editor-panel">
+            
+            <div class="toolbar">
+                <div class="scenario-selector">
+                    <label data-i18n="lbl_scenario_select">Scenario:</label>
+                    <select id="sel-scenario"></select>
+                </div>
+                <button id="btn-load" data-i18n="btn_load_ex">Load</button>
+                <button id="btn-reset" class="btn-secondary" data-i18n="btn_reset">Reset</button>
+            </div>
+
+            <!-- === 模式 A: 原始 JSON 编辑器 (默认显示) === -->
+            <div id="json-editor-container">
+                <div class="input-group">
+                    <label data-i18n="lbl_config">Battle Config (JSON)</label>
+                    <textarea id="input-config" placeholder="Paste battle_config.json here..."></textarea>
+                </div>
+                <div class="row">
+                    <div class="input-group half">
+                        <label data-i18n="lbl_units">Units DB (JSON)</label>
+                        <textarea id="input-units" placeholder="Paste units.json here..."></textarea>
+                    </div>
+                    <div class="input-group half">
+                        <label data-i18n="lbl_buildings">Buildings DB (JSON)</label>
+                        <textarea id="input-buildings" placeholder="Paste buildings.json here..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === 模式 B: 新增 GUI 编辑器 (默认隐藏) === -->
+            <div id="gui-editor-container" style="display: none;">
+                <!-- Tab 导航 -->
+                <div class="gui-tabs">
+                    <button class="tab-btn active" data-tab="tab-battle">⚔️ Battle Config</button>
+                    <button class="tab-btn" data-tab="tab-units">🛡️ Units DB</button>
+                    <button class="tab-btn" data-tab="tab-buildings">🏗️ Buildings DB</button>
+                </div>
+
+                <!-- Tab 内容: 战斗配置 -->
+                <div id="tab-battle" class="gui-tab-content active">
+                    <div class="gui-global-settings">
+                        <!-- 由 JS 动态渲染全局设置 -->
+                    </div>
+                    <div class="gui-teams-container">
+                        <div class="team-column" id="gui-team-a">
+                            <h3>Team A</h3>
+                            <div class="stacks-wrapper"></div>
+                            <button class="btn-add-stack dashed">+ Add Stack</button>
+                        </div>
+                        <div class="team-column" id="gui-team-b">
+                            <h3>Team B</h3>
+                            <div class="stacks-wrapper"></div>
+                            <button class="btn-add-stack dashed">+ Add Stack</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 内容: 单位库 -->
+                <div id="tab-units" class="gui-tab-content">
+                    <div class="db-toolbar">
+                        <input type="text" id="unit-search" placeholder="Search units...">
+                        <button class="btn-small" onclick="addNewUnit()">+ New Unit</button>
+                    </div>
+                    <div id="units-grid" class="db-grid"></div>
+                </div>
+
+                <!-- Tab 内容: 建筑库 -->
+                <div id="tab-buildings" class="gui-tab-content">
+                    <div class="db-toolbar">
+                        <button class="btn-small" onclick="addNewBuilding()">+ New Building</button>
+                    </div>
+                    <div id="buildings-grid" class="db-grid"></div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button id="btn-run" class="btn-primary" data-i18n="btn_run">RUN SIMULATION</button>
+            </div>
+        </div>
+
+        <!-- 右侧日志区 -->
+        <div class="output-panel">
+            <div class="log-header">
+                <span>Output Log</span>
+                <button id="btn-clear" class="btn-small" data-i18n="btn_clear">Clear</button>
+            </div>
+            <div id="output-log"></div>
+        </div>
+
+        <div id="doc-modal-overlay" class="modal-overlay hidden">
+            <div class="modal-content doc-modal-content">
+                <div class="modal-header">
+                    <h3 id="doc-modal-title">Documentation</h3>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <!-- 移动端专用的章节选择器 (默认隐藏，手机显示) -->
+                        <select id="doc-mobile-nav" class="mobile-only"></select>
+                        <button class="close-modal" onclick="closeDocModal()">&times;</button>
+                    </div>
+                </div>
+                <div class="doc-layout">
+                    <!-- 左侧导航 (PC显示) -->
+                    <div class="doc-sidebar" id="doc-sidebar"></div>
+                    <!-- 右侧内容 -->
+                    <div class="doc-viewer markdown-body" id="doc-viewer">
+                        <!-- Markdown 渲染内容将出现在这里 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗模态框 (用于编辑单位详情) -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Edit Item</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- 动态内容 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-modal">Cancel</button>
+                <button class="btn-primary" id="btn-modal-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    
+    <script src="data/examples.js"></script> 
+    <script src="js/i18n.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/gui.js"></script> 
+    <script src="js/main.js"></script>
+    <script src="js/pwa.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <script src="js/docs.js"></script>
+    
+</body>
+</html>
