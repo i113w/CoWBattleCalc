@@ -345,8 +345,9 @@ function resolveAtomicClash(active_stack, target_stack, target_army, active_ref,
     debug(`CLASH START: ${active_stack.name} vs ${target_stack.name}`);
 
     // --- Validity Check ---
-    let target_is_grounded = isStackGroundedPlane(target_stack, is_target_passive);
-    let target_is_flying = target_stack.is_air && !target_is_grounded;
+    let target_is_grounded_plane = isStackGroundedPlane(target_stack, is_target_passive);
+    let target_is_flying = target_stack.is_air && !target_is_grounded_plane;
+
     if (target_is_flying && !active_stack.is_air) {
         debug(`  -> Invalid: Ground attacking Flying. Abort.`);
         return;
@@ -368,52 +369,85 @@ function resolveAtomicClash(active_stack, target_stack, target_army, active_ref,
         }
     }
 
+    // ★ 新增判定：是否为“空对地”或“空对海” (即：攻击方是空中单位，且目标不是在天上飞的单位)
+    let is_air_to_ground_or_sea = active_stack.is_air && !target_is_flying;
+
     // --- Execution Loop ---
     for (let i = 0; i < iterations; i++) {
         if (!active_stack.is_alive || !target_stack.is_alive) break;
 
-        // Calc Firepower
         let atk_map = {};
-        let only_ranged = is_ranged_free_hit; 
-        
-        let target_armors = target_army.get_all_armor_types();
-        target_armors.forEach(armor => {
-            let base = active_stack.calculate_output(DamageType.ATTACK, armor, 10, only_ranged);
-            atk_map[armor] = base * atk_factor * damage_modifier;
-        });
-        debug(`  -> Output Dmg: ${JSON.stringify(atk_map)}`);
-
-        // Defense Logic
         let def_map = {};
-        let has_defense = false;
+        let has_defense = !is_ranged_free_hit;
 
-        if (is_ranged_free_hit) {
+        // 特殊规则：地面飞机被空军直接攻击不反击（符合 Doc 3 特性记录）
+        if (target_is_grounded_plane && active_stack.is_air && !is_patrol_active) {
             has_defense = false;
-        } else if (target_is_grounded) {
-            if (active_stack.is_air && !is_patrol_active) {
-                // Free hit vs grounded
-            } else {
-                has_defense = true;
-            }
-        } else {
-            has_defense = true;
         }
 
-        if (has_defense) {
+        // ========================================================
+        // 空对地/海 机制分离 (防空先开火 -> 更新飞机状态 -> 飞机再投弹)
+        // ========================================================
+        if (is_air_to_ground_or_sea && has_defense) {
+            debug(`  -> [Air-to-Ground/Sea] Defender fires first!`);
+
+            // 1. 防守方先进行反击 (计算防空/防海伤害)
             let active_armors = active_stack.get_present_armor_types();
             active_armors.forEach(armor => {
                 let base = target_army.compute_army_blob_output(DamageType.DEFENSE, armor, 10);
                 def_map[armor] = base * def_factor * damage_modifier;
             });
             debug(`  -> Defense Dmg: ${JSON.stringify(def_map)}`);
-        }
 
-        // Apply Damage
-        let atk_b_dmg = 0.0; // Simplify building dmg for debug
-        
-        target_army.receive_damage(atk_map, atk_b_dmg);
-        if (has_defense) {
+            // 2. 飞机立刻承受反击伤害，并更新血量与效率
             active_stack.receive_damage_distribution(def_map, active_stack.total_count);
+
+            // 3. 拦截检查：飞机是否被防空直接击落？
+            if (!active_stack.is_alive) {
+                debug(`  -> Attacker was shot down before dropping bombs!`);
+                break; // 飞机坠毁，立刻终止本次以及后续可能存在的巡逻(iteration)
+            }
+
+            // 4. 存活的飞机基于【受损后的最新状态】计算投弹伤害
+            let target_armors = target_army.get_all_armor_types();
+            target_armors.forEach(armor => {
+                let base = active_stack.calculate_output(DamageType.ATTACK, armor, 10, is_ranged_free_hit);
+                atk_map[armor] = base * atk_factor * damage_modifier;
+            });
+            debug(`  -> Output Dmg (After taking damage): ${JSON.stringify(atk_map)}`);
+
+            // 5. 将飞机的伤害应用到地面/海面目标上
+            let atk_b_dmg = 0.0; // 建筑伤害后续可扩展
+            target_army.receive_damage(atk_map, atk_b_dmg);
+
+        }
+            // ========================================================
+            // 常规机制：陆战近战、空对空 (双方同步结算)
+        // ========================================================
+        else {
+            // 1. 同步计算双方输出 (均基于满血/当前初始状态)
+            let target_armors = target_army.get_all_armor_types();
+            target_armors.forEach(armor => {
+                let base = active_stack.calculate_output(DamageType.ATTACK, armor, 10, is_ranged_free_hit);
+                atk_map[armor] = base * atk_factor * damage_modifier;
+            });
+            debug(`  -> Output Dmg: ${JSON.stringify(atk_map)}`);
+
+            if (has_defense) {
+                let active_armors = active_stack.get_present_armor_types();
+                active_armors.forEach(armor => {
+                    let base = target_army.compute_army_blob_output(DamageType.DEFENSE, armor, 10);
+                    def_map[armor] = base * def_factor * damage_modifier;
+                });
+                debug(`  -> Defense Dmg: ${JSON.stringify(def_map)}`);
+            }
+
+            // 2. 同步应用伤害
+            let atk_b_dmg = 0.0;
+            target_army.receive_damage(atk_map, atk_b_dmg);
+            if (has_defense) {
+                active_stack.receive_damage_distribution(def_map, active_stack.total_count);
+            }
         }
     }
 }

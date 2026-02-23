@@ -1,6 +1,6 @@
 const GUI = {
     isActive: false,
-    
+
     // UI References
     container: document.getElementById('gui-editor-container'),
     jsonContainer: document.getElementById('json-editor-container'),
@@ -9,13 +9,13 @@ const GUI = {
     globalSettings: document.querySelector('.gui-global-settings'),
     unitsGrid: document.getElementById('units-grid'),
     buildingsGrid: document.getElementById('buildings-grid'),
-    
+
     // Modal Refs
     modal: document.getElementById('modal-overlay'),
     modalTitle: document.getElementById('modal-title'),
     modalBody: document.getElementById('modal-body'),
     btnSaveModal: document.getElementById('btn-modal-save'),
-    
+
     // Data cache for dropdowns
     availableUnits: [],
     availableBuildings: [],
@@ -37,8 +37,8 @@ function initGUI() {
     });
 
     // Add Stack Buttons
-    document.querySelector('#gui-team-a .btn-add-stack').onclick = () => addStackCard(GUI.teamA);
-    document.querySelector('#gui-team-b .btn-add-stack').onclick = () => addStackCard(GUI.teamB);
+    document.querySelector('#gui-team-a .btn-add-stack').onclick = () => handleAddStack(GUI.teamA);
+    document.querySelector('#gui-team-b .btn-add-stack').onclick = () => handleAddStack(GUI.teamB);
 
     // Modal Events
     document.querySelectorAll('.close-modal').forEach(b => b.onclick = closeModal);
@@ -49,9 +49,9 @@ function initGUI() {
             const query = e.target.value.toLowerCase().trim();
             // 重新获取当前 JSON 数据
             const allUnits = JSON.parse(document.getElementById('input-units').value || "{}");
-            
+
             if (!query) {
-                renderUnitsDB(allUnits); 
+                renderUnitsDB(allUnits);
                 return;
             }
 
@@ -84,7 +84,7 @@ function renderGUI() {
 
         // 2. Render Battle Config
         renderGlobalSettings(config);
-        
+
         GUI.teamA.innerHTML = '';
         if (config.team_a && config.team_a.stacks) {
             config.team_a.stacks.forEach(s => addStackCard(GUI.teamA, s));
@@ -108,7 +108,7 @@ function renderGUI() {
 }
 
 function renderGlobalSettings(config) {
-    const isDetailed = config.detailed_output !== false; 
+    const isDetailed = config.detailed_output !== false;
 
     GUI.globalSettings.innerHTML = `
         <div class="input-group" style="flex:1; max-width:200px">
@@ -136,7 +136,7 @@ function renderGlobalSettings(config) {
             </label>
         </div>
     `;
-    
+
     if (config.battle_mode) document.getElementById('gui-mode').value = config.battle_mode;
 }
 
@@ -150,94 +150,113 @@ function syncGuiToJson() {
         battle_mode: document.getElementById('gui-mode').value,
         max_rounds: parseInt(document.getElementById('gui-rounds').value) || 50,
         enable_randomness: document.getElementById('gui-random').checked,
-        
+
         detailed_output: document.getElementById('gui-detailed').checked,
-        
+
         team_a: scrapeTeam('Team A', GUI.teamA),
         team_b: scrapeTeam('Team B', GUI.teamB)
     };
-    
+
     document.getElementById('input-config').value = JSON.stringify(config, null, 2);
 
 }
 
-function scrapeTeam(name, container) {
-    const stacks = [];
-    
-    // 遍历每一个 Stack Card
-    container.querySelectorAll('.stack-card').forEach(card => {
-        const units = [];
-        
-        // 遍历 Stack 下的每一个 Unit Wrapper
-        card.querySelectorAll('.unit-wrapper').forEach(wrapper => {
-            // 从 Main Row 读取
-            const id = wrapper.querySelector('.u-id').value;
-            const count = parseInt(wrapper.querySelector('.u-cnt').value) || 0;
-            const hpInput = wrapper.querySelector('.u-hp').value.trim();
+// --- Helper: Scrape single Unit from DOM ---
+function scrapeUnit(wrapper) {
+    const id = wrapper.querySelector('.u-id').value;
+    const count = parseInt(wrapper.querySelector('.u-cnt').value) || 0;
+    const hpInput = wrapper.querySelector('.u-hp').value.trim();
 
-            // HP 智能解析逻辑
-            let hpObj = {}; 
-            if (hpInput.endsWith('%')) {
-                // 模式 A: 百分比 (hp_ratio)
-                let ratio = parseFloat(hpInput.replace('%', '')) / 100.0;
-                if (isNaN(ratio)) ratio = 1.0;
-                hpObj.hp_ratio = ratio;
-            } else {
-                // 模式 B: 尝试解析为绝对数值
-                let val = parseFloat(hpInput);
-                if (isNaN(val)) {
-                    // 解析失败，回退到默认 100%
-                    hpObj.hp_ratio = 1.0; 
-                } else {
-                    // 策略: 只要不带%，就是 current_hp
-                    hpObj.current_hp = val;
-                }
-            }
-
-            // 从 Details Row 读取
-            const terrain = parseFloat(wrapper.querySelector('.u-ter').value) || 0.0;
-            const isRanged = wrapper.querySelector('.u-ranged').checked;
-            const isUltra = wrapper.querySelector('.u-ultra').checked;
-
-            // 组装 Unit 对象
-            const unitData = {
-                id: id,
-                count: count,
-                terrain_bonus: terrain,
-                ...hpObj // 展开 hp_ratio 或 current_hp
-            };
-
-            // 只有为 true 时才写入 JSON，保持整洁
-            if (isRanged) unitData.ranged = true;
-            if (isUltra) unitData.ultra_ranged = true;
-
-            units.push(unitData);
-        });
-
-        // 读取 Stack 属性
-        const stackObj = {
-            name: card.querySelector('.stack-title-input').value || "Stack",
-            core: card.querySelector('.is-core').checked,
-            split: card.querySelector('.is-split').checked,
-            is_airplane: card.querySelector('.is-air').checked,
-            patrol: card.querySelector('.is-patrol').checked,
-            units: units
-        };
-        const targetVal = card.querySelector('.stack-target').value.trim();
-        if (targetVal) {
-            stackObj.target = targetVal;
+    // HP 智能解析逻辑
+    let hpObj = {};
+    if (hpInput.endsWith('%')) {
+        let ratio = parseFloat(hpInput.replace('%', '')) / 100.0;
+        if (isNaN(ratio)) ratio = 1.0;
+        hpObj.hp_ratio = ratio;
+    } else {
+        let val = parseFloat(hpInput);
+        if (isNaN(val)) {
+            hpObj.hp_ratio = 1.0;
+        } else {
+            hpObj.current_hp = val;
         }
-        const bId = card.querySelector('.b-id').value;
-        if (bId) {
-            stackObj.building = {
-                id: bId,
-                level: parseInt(card.querySelector('.b-lvl').value) || 1
-            };
-        }
-        stacks.push(stackObj);
+    }
+
+    const terrain = parseFloat(wrapper.querySelector('.u-ter').value) || 0.0;
+    const isRanged = wrapper.querySelector('.u-ranged').checked;
+    const isUltra = wrapper.querySelector('.u-ultra').checked;
+
+    const unitData = {
+        id: id,
+        count: count,
+        terrain_bonus: terrain,
+        ...hpObj
+    };
+
+    if (isRanged) unitData.ranged = true;
+    if (isUltra) unitData.ultra_ranged = true;
+
+    return unitData;
+}
+
+// --- Helper: Scrape single Stack from DOM ---
+function scrapeStack(card) {
+    const units = [];
+    card.querySelectorAll('.unit-wrapper').forEach(wrapper => {
+        units.push(scrapeUnit(wrapper));
     });
 
+    const stackObj = {
+        name: card.querySelector('.stack-title-input').value || "Stack",
+        core: card.querySelector('.is-core').checked,
+        split: card.querySelector('.is-split').checked,
+        is_airplane: card.querySelector('.is-air').checked,
+        patrol: card.querySelector('.is-patrol').checked,
+        units: units
+    };
+    const targetVal = card.querySelector('.stack-target').value.trim();
+    if (targetVal) {
+        stackObj.target = targetVal;
+    }
+    const bId = card.querySelector('.b-id').value;
+    if (bId) {
+        stackObj.building = {
+            id: bId,
+            level: parseInt(card.querySelector('.b-lvl').value) || 1
+        };
+    }
+    return stackObj;
+}
+
+function scrapeTeam(name, container) {
+    const stacks = [];
+    container.querySelectorAll('.stack-card').forEach(card => {
+        stacks.push(scrapeStack(card));
+    });
     return { name: name, stacks: stacks };
+}
+
+// --- Handler: 智能添加 Stack (克隆上一个) ---
+function handleAddStack(container) {
+    const cards = container.querySelectorAll('.stack-card');
+    if (cards.length > 0) {
+        // 如果有上一个，则抓取它的数据来克隆
+        const lastCard = cards[cards.length - 1];
+        const clonedData = scrapeStack(lastCard);
+
+        // 优化：如果是默认的序列名，尝试使其递增 (如 "Stack 1" -> "Stack 2")
+        let match = clonedData.name.match(/^(.*?)(\d+)$/);
+        if (match) {
+            clonedData.name = match[1] + (parseInt(match[2]) + 1);
+        } else if (clonedData.name === "Stack") {
+            clonedData.name = `Stack ${cards.length + 1}`;
+        }
+
+        addStackCard(container, clonedData);
+    } else {
+        // 如果是空白的，留空
+        addStackCard(container);
+    }
 }
 
 // ============================================================================
@@ -248,14 +267,14 @@ function addStackCard(container, data = null) {
     const targetVal = data ? (data.target || data.manual_target_id || "") : "";
     const div = document.createElement('div');
     div.className = 'stack-card';
-    
+
     // 1. 定义所有变量
     const sName = data ? data.name : `Stack ${container.children.length + 1}`;
     const isCore = data ? data.core : false;
     const isSplit = data ? data.split : false;
     const isAir = data ? data.is_airplane : false;
-    const isPatrol = data ? data.patrol : false; 
-    
+    const isPatrol = data ? data.patrol : false;
+
     const bId = data && data.building ? data.building.id : "";
     const bLvl = data && data.building ? data.building.level : 1;
 
@@ -296,8 +315,6 @@ function addStackCard(container, data = null) {
             </div>
         </div>
 
-        <!-- 原先这里有个 .stack-building-row 导致重复，现已删除 -->
-
         <div class="unit-list"></div>
         <button class="dashed btn-add-unit">+ Add Unit</button>
     `;
@@ -331,7 +348,18 @@ function addStackCard(container, data = null) {
 
     // Add Unit
     const unitList = div.querySelector('.unit-list');
-    div.querySelector('.btn-add-unit').onclick = () => addUnitRow(unitList);
+    div.querySelector('.btn-add-unit').onclick = () => {
+        const wrappers = unitList.querySelectorAll('.unit-wrapper');
+        if (wrappers.length > 0) {
+            // 如果有上一个，克隆它的所有状态（兵种、血量、地形成数等）
+            const lastWrapper = wrappers[wrappers.length - 1];
+            const clonedUnit = scrapeUnit(lastWrapper);
+            addUnitRow(unitList, clonedUnit);
+        } else {
+            // 如果是空的，则使用默认留空状态
+            addUnitRow(unitList);
+        }
+    };
 
     // Initial Units
     if (data && data.units) {
@@ -341,12 +369,10 @@ function addStackCard(container, data = null) {
     container.appendChild(div);
 }
 
-
-
 function addUnitRow(container, data = null) {
     const wrapper = document.createElement('div');
     wrapper.className = 'unit-wrapper';
-    
+
     // --- 1. 数据准备 ---
     let uOptions = '';
     const currentId = data ? data.id : (GUI.availableUnits.length ? GUI.availableUnits[0] : "");
@@ -355,7 +381,7 @@ function addUnitRow(container, data = null) {
     });
 
     const cnt = data ? data.count : 10;
-    
+
     // HP 智能处理: 优先显示百分比，如果有绝对数值则显示数值
     let hpDisplay = "100%"; // 默认
     if (data) {
@@ -407,12 +433,11 @@ function addUnitRow(container, data = null) {
     btnExpand.onclick = () => {
         detailsRow.classList.toggle('expanded');
         btnExpand.classList.toggle('open');
-        // 切换图标方向 (如果用了 FontAwesome 的 class，也可以这里切换 class)
+        // 切换图标方向
     };
 
     container.appendChild(wrapper);
 }
-
 
 // ============================================================================
 // Database & Modals (Units / Buildings)
@@ -444,10 +469,11 @@ function renderBuildingsDB(buildingsData) {
             <h4>${key}</h4>
             <p>Levels: ${b.levels.length}</p>
         `;
-        card.onclick = () => openBuildingModal(key, b); // Simplified for now
+        card.onclick = () => openBuildingModal(key, b);
         GUI.buildingsGrid.appendChild(card);
     });
 }
+
 function openBuildingModal(id, data) {
     GUI.currentEditId = id;
     GUI.currentEditType = 'building';
@@ -459,7 +485,7 @@ function openBuildingModal(id, data) {
         return levels.map((l, idx) => {
             const hp = l.hp !== undefined ? l.hp : (l.hp_add || 0);
             const mit = l.mitigation !== undefined ? l.mitigation : (l.mitigation_add || 0);
-            
+
             return `
             <div class="form-row level-row" style="display:flex; align-items:center; gap:8px;">
                 <span class="lvl-idx" style="min-width: 35px; font-weight:bold;">Lv ${l.level || (idx + 1)}</span>
@@ -499,9 +525,9 @@ function openBuildingModal(id, data) {
         const nextLv = container.querySelectorAll('.level-row').length + 1;
         const div = document.createElement('div');
         div.className = 'form-row level-row';
-        
+
         div.style.cssText = "display:flex; align-items:center; gap:8px;";
-        
+
         div.innerHTML = `
             <span class="lvl-idx" style="min-width: 35px; font-weight:bold;">Lv ${nextLv}</span>
             <div style="display:flex; gap:10px; flex:1;">
@@ -529,7 +555,7 @@ function saveModalData() {
             attack: {},
             defense: {}
         };
-        
+
         document.querySelectorAll('#m-atk-col input').forEach(inp => {
             if (parseFloat(inp.value) > 0) newUnit.attack[inp.dataset.armor] = parseFloat(inp.value);
         });
@@ -541,12 +567,12 @@ function saveModalData() {
         units[id] = newUnit;
         document.getElementById('input-units').value = JSON.stringify(units, null, 2);
         renderUnitsDB(units);
-    } 
+    }
     // === Case B: Building ===
     else if (GUI.currentEditType === 'building') {
         const id = GUI.currentEditId;
         const newLevels = [];
-        
+
         const rows = document.querySelectorAll('#m-levels-container .level-row');
         rows.forEach((row, idx) => {
             newLevels.push({
@@ -566,11 +592,9 @@ function saveModalData() {
         document.getElementById('input-buildings').value = JSON.stringify(buildings, null, 2);
         renderBuildingsDB(buildings);
     }
-    
+
     closeModal();
 }
-
-
 
 // --- Modal Logic ---
 
@@ -583,7 +607,7 @@ function openUnitModal(id, data) {
     GUI.currentEditType = 'unit';
     GUI.modalTitle.textContent = `Edit Unit: ${id}`;
     GUI.modal.classList.remove('hidden');
-    
+
     // Armor Types for dropdown
     const armors = ["Unarmored", "Light Armor", "Heavy Armor", "Air", "Ship", "Submarine", "Building"];
     let armorOpts = armors.map(a => `<option value="${a}" ${a === data.armor_type ? 'selected' : ''}>${a}</option>`).join('');
@@ -626,14 +650,12 @@ function openUnitModal(id, data) {
     `;
 }
 
-
-
-
 function addNewUnit() {
     const id = prompt("Enter new Unit ID (e.g. Heavy_Tank_Lvl1):");
     if (!id) return;
     openUnitModal(id, { name: id, hp: 10, armor_type: "Unarmored", attack: {}, defense: {} });
 }
+
 function addNewBuilding() {
     const id = prompt("Enter new Building ID (e.g. Supply_Depot):");
     if (!id) return;
